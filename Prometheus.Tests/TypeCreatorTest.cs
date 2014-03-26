@@ -11,7 +11,7 @@ namespace Prometheus.Tests
     public class TypeCreatorTest
     {
         [TestMethod]
-        public void TestStaticMethod()
+        public void TestSimpleInstanceMethod()
         {
             var typeCreator = new TypeCreator
             {
@@ -25,6 +25,27 @@ namespace Prometheus.Tests
             var instance = Activator.CreateInstance(type);
             var result = type.GetMethod("X").Invoke(instance, new object[0]);
             Assert.AreEqual("abc", (string)result);
+        }
+
+        [TestMethod]
+        public void TestIncrementerMethod()
+        {
+            var typeCreator = new TypeCreator
+            {
+                Name = "A",
+                Attributes = TypeAttributes.Public,
+            };
+
+            typeCreator.Field("counter", typeof(int));
+            typeCreator.Method("Next", t => {
+                var @this = Expression.Parameter(t.Type);
+                return Expression.Lambda(Expression.Increment(Expression.Field(@this, t.Field("counter"))), @this);
+            });
+
+            var type = typeCreator.ToType(this.GetModuleBuilder());
+            var instance = Activator.CreateInstance(type);
+            var result = type.GetMethod("Next").Invoke(instance, new object[0]);
+            Assert.AreEqual(1, result);
         }
 
         private ModuleBuilder GetModuleBuilder()

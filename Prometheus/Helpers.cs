@@ -1,10 +1,11 @@
 ﻿namespace Prometheus
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
     internal static class Helpers
     {
@@ -39,5 +40,17 @@
             Throw.IfNull(func, "func");
             return obj != null ? func(obj) : ifNullReturn;
         }
+    }
+
+    internal static class ReflectionHelpers
+    {
+        private static BindingFlags allFlags;
+        public static BindingFlags AllBindingFlags { get { return BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic; } }
+    }
+
+    internal static class Empty<T>
+    {
+        private static T[] array;
+        public static T[] Array { get { return array ?? (array = new T[0]); } }
     }
 }

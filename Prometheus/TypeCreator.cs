@@ -13,8 +13,8 @@ namespace Prometheus
     {
         // TODO we need to know the lambda signature BEFORE we create the primary type, so that we can create calls to the nested helper type
         // -> can execute the func twice. Once with the type builder to learn the signature, then again with the actual type!
-        private readonly List<Tuple<string, MethodAttributes, Func<Type, LambdaExpression>>> methodFactories = 
-            new List<Tuple<string, MethodAttributes, Func<Type, LambdaExpression>>>();
+        private readonly List<Tuple<string, MethodAttributes, Func<TypeFacade, LambdaExpression>>> methodFactories = 
+            new List<Tuple<string, MethodAttributes, Func<TypeFacade, LambdaExpression>>>();
         private readonly List<FieldCreator> fields = new List<FieldCreator>();
 
         public TypeCreator()
@@ -34,7 +34,7 @@ namespace Prometheus
             return fieldCreator;
         }
 
-        public void Method(string name, Func<Type, LambdaExpression> lambdaFactory, MethodAttributes attributes = MethodAttributes.Public)
+        public void Method(string name, Func<TypeFacade, LambdaExpression> lambdaFactory, MethodAttributes attributes = MethodAttributes.Public)
         {
             Throw.IfNull(lambdaFactory, "lambdaFactory");
 
@@ -49,9 +49,10 @@ namespace Prometheus
             // TODO add attributes
 
             // add fields
+            var fields = new List<FieldInfo>();
             foreach (var fieldCreator in this.Fields)
             {
-                fieldCreator.ToField(typeBuilder);
+                fields.Add(fieldCreator.ToField(typeBuilder));
             }
 
             // TODO add properties
@@ -62,9 +63,15 @@ namespace Prometheus
 
             // define all methods
             var helperMethodBuilders = new List<MethodBuilder>();
+            var partialTypeFacade = new TypeFacade(typeBuilder, fields, Empty<PropertyInfo>.Array, Empty<MethodInfo>.Array);
             foreach (var t in this.methodFactories)
             {
-                var lambda = t.Item3(typeBuilder);
+                var t1 = typeof(Expression<>).MakeGenericType(typeof(Func<>).MakeGenericType(typeof(int)));
+                t1.GetMethod("Create");
+                var t2 = typeof(Expression<>).MakeGenericType(typeof(Func<>).MakeGenericType(typeBuilder));
+                t2.GetMethod("Create");
+
+                var lambda = t.Item3(partialTypeFacade);
                 Type[] parameterTypes;
                 if (!t.Item2.HasFlag(MethodAttributes.Static)
                     && lambda.Parameters.Count > 0
@@ -92,11 +99,12 @@ namespace Prometheus
             }
 
             var type = typeBuilder.CreateType();
+            var completedTypeFacade = new TypeFacade(type, type.GetFields(ReflectionHelpers.AllBindingFlags), type.GetProperties(ReflectionHelpers.AllBindingFlags), type.GetMethods(ReflectionHelpers.AllBindingFlags));
 
             // implement all methods
             for (var i = 0; i < helperMethodBuilders.Count; ++i)
             {
-                var lambda = this.methodFactories[i].Item3(type);
+                var lambda = this.methodFactories[i].Item3(completedTypeFacade);
                 lambda.CompileToMethod(helperMethodBuilders[i]);
             }
             helperTypeBuilder.CreateType();
