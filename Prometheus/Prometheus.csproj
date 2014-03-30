@@ -39,11 +39,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyCreator.cs" />
+    <Compile Include="CreationContext.cs" />
+    <Compile Include="CreatorHelpers.cs" />
     <Compile Include="EmitHelpers.cs" />
+    <Compile Include="InvalidCreatorException.cs" />
     <Compile Include="FieldCreator.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="IDynamicType.cs" />
     <Compile Include="Facades.cs" />
+    <Compile Include="MethodCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Throw.cs" />
     <Compile Include="TypeCreator.cs" />

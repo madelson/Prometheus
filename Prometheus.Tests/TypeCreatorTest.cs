@@ -28,6 +28,16 @@ namespace Prometheus.Tests
         }
 
         [TestMethod]
+        public void TestA()
+        {
+            var mc = new MethodCreator();
+            mc = mc.Static(true);
+            var mcg = new MethodCreator<string>();
+            mcg = CreatorHelpers.Static(mcg, true);
+            mcg = mcg.Name("a");
+        }
+
+        [TestMethod]
         public void TestIncrementerMethod()
         {
             var typeCreator = new TypeCreator

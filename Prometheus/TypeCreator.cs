@@ -41,11 +41,32 @@ namespace Prometheus
             this.methodFactories.Add(Tuple.Create(name, attributes, lambdaFactory));
         }
 
+        internal TypeBuilder CreateBuilder(ModuleBuilder module)
+        {
+            return null;
+        }
+
+        internal Type CreateType(TypeBuilder typeBuilder)
+        {
+            return null;
+        }
+
+        internal void CompleteType(Type type)
+        {
+        }
+
         internal Type ToType(ModuleBuilder module)
         {
+            // add attributes
+            // add fields
+            // add properties -> defines additional methods
+            // add method signatures (& bodies for raw IL methods)
+            // add method bodies
+
             Throw<InvalidOperationException>.If(string.IsNullOrWhiteSpace(this.Name), "Name is required");
             var typeBuilder = module.DefineType(this.Name, this.Attributes);
-
+            var pb = typeBuilder.DefineProperty("", PropertyAttributes.HasDefault, null, null);
+            
             // TODO add attributes
 
             // add fields
@@ -66,11 +87,6 @@ namespace Prometheus
             var partialTypeFacade = new TypeFacade(typeBuilder, fields, Empty<PropertyInfo>.Array, Empty<MethodInfo>.Array);
             foreach (var t in this.methodFactories)
             {
-                var t1 = typeof(Expression<>).MakeGenericType(typeof(Func<>).MakeGenericType(typeof(int)));
-                t1.GetMethod("Create");
-                var t2 = typeof(Expression<>).MakeGenericType(typeof(Func<>).MakeGenericType(typeBuilder));
-                t2.GetMethod("Create");
-
                 var lambda = t.Item3(partialTypeFacade);
                 Type[] parameterTypes;
                 if (!t.Item2.HasFlag(MethodAttributes.Static)

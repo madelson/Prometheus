@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Prometheus
 {
-    public sealed class FieldCreator
+    public sealed class FieldCreator : ICreatorWithAttributes<FieldCreator, FieldAttributes>, ICreatorWithName<FieldCreator>
     {
         internal FieldCreator()
         {
